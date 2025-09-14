@@ -4,12 +4,14 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Health Department</title>
+    <title>Health Department - Capture Photo</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             background: #f4f4f4;
+            text-align: center;
         }
 
         .navbar {
@@ -41,11 +43,6 @@
             font-weight: bold;
         }
 
-        .container {
-            padding: 20px;
-            text-align: center;
-        }
-
         video, canvas {
             display: block;
             margin: 20px auto;
@@ -63,7 +60,6 @@
         }
 
         #message {
-            text-align: center;
             margin-top: 15px;
             color: green;
         }
@@ -71,7 +67,6 @@
 </head>
 
 <body>
-    <!-- Navbar -->
     <nav class="navbar">
         <div class="container">
             <h2>Government Services Portal</h2>
@@ -83,54 +78,86 @@
         </div>
     </nav>
 
-    <div class="container">
-        <h1>Police Department</h1>
-        <p>Capture and send a photo for Police service records.</p>
+    <h1>Health Department</h1>
+    <p>Use your camera to capture and send a photo for health service records.</p>
 
-        <video id="video" autoplay></video>
-        <button id="capture">Capture Photo</button>
-        <canvas id="canvas" style="display:none;"></canvas>
-        <button id="send">Send Photo to Backend</button>
+    <video id="video" autoplay playsinline></video>
+    <button id="capture">Capture Photo</button>
+    <button id="retake" style="display:none;">Retake Photo</button>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <button id="send">Send Photo to Backend</button>
 
-        <div id="message"></div>
-    </div>
+    <div id="message"></div>
 
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const captureBtn = document.getElementById('capture');
+        const retakeBtn = document.getElementById('retake');
         const sendBtn = document.getElementById('send');
         const messageDiv = document.getElementById('message');
 
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => video.srcObject = stream)
-            .catch(err => console.error('Webcam error:', err));
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error('Camera error:', err);
+                alert('Camera access is not available. Please use HTTPS or localhost.');
+            }
+        }
+
+        initCamera();
 
         captureBtn.addEventListener('click', () => {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            const context = canvas.getContext('2d');
-            context.drawImage(video, 0, 0);
+            canvas.getContext('2d').drawImage(video, 0, 0);
             canvas.style.display = 'block';
+            video.style.display = 'none';
+            captureBtn.style.display = 'none';
+            retakeBtn.style.display = 'block';
+            messageDiv.textContent = 'Photo captured.';
+        });
+
+        retakeBtn.addEventListener('click', () => {
+            canvas.style.display = 'none';
+            video.style.display = 'block';
+            captureBtn.style.display = 'block';
+            retakeBtn.style.display = 'none';
+            messageDiv.textContent = 'Retake enabled. Capture a new photo.';
         });
 
         sendBtn.addEventListener('click', () => {
+            if (canvas.width === 0 || canvas.height === 0) {
+                messageDiv.textContent = 'Please capture a photo before sending.';
+                return;
+            }
+
             canvas.toBlob(blob => {
+                if (!blob) {
+                    messageDiv.textContent = 'Failed to capture photo.';
+                    return;
+                }
+
                 const formData = new FormData();
-                formData.append('photo', blob, 'photo.png');
+                formData.append('photo', blob, 'health-photo.png');
                 formData.append('department', 'health');
 
-                fetch('https://your-backend-api.com/upload', {
+                fetch('http://10.140.69.246/api/ask', {
                     method: 'POST',
                     body: formData
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) throw new Error('Upload failed');
+                    return response.json();
+                })
                 .then(data => {
-                    messageDiv.textContent = 'Photo successfully sent!';
+                    messageDiv.textContent = 'Photo uploaded successfully!';
                 })
                 .catch(err => {
                     console.error('Upload error:', err);
-                    messageDiv.textContent = 'Failed to send photo.';
+                    messageDiv.textContent = 'Upload failed.';
                 });
             }, 'image/png');
         });
