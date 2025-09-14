@@ -4,50 +4,27 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Health Department - Capture Photo</title>
+    <title>Transport Department Complaint</title>
 
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            background: #f4f4f4;
+            background: #e0f7fa; /* light cyan for transport theme */
             text-align: center;
         }
 
         .navbar {
-            background-color: #007bff;
+            background-color: #00acc1; /* cyan navbar */
             color: white;
             padding: 15px;
-        }
-
-        .navbar h2 {
-            display: inline;
-        }
-
-        .navbar ul {
-            list-style: none;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-            margin: 0;
-            padding: 0;
-        }
-
-        .navbar ul li {
-            margin-left: 20px;
-        }
-
-        .navbar ul li a {
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
         }
 
         video, canvas {
             display: block;
             margin: 20px auto;
             max-width: 100%;
-            border: 1px solid #ccc;
+            border: 2px solid #00acc1;
             border-radius: 8px;
         }
 
@@ -57,111 +34,141 @@
             padding: 10px 20px;
             font-size: 1rem;
             cursor: pointer;
+            background-color: #00acc1;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #007c91;
         }
 
         #message {
             margin-top: 15px;
-            color: green;
+            font-weight: bold;
+            color: #007c91;
+        }
+
+        #output {
+            margin: 20px auto;
+            padding: 15px;
+            max-width: 600px;
+            text-align: left;
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        h1 {
+            color: #007c91;
         }
     </style>
 </head>
 
 <body>
-    <nav class="navbar">
-        <div class="container">
-            <h2>Government Services Portal</h2>
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="#">About</a></li>
-                <li><a href="#">Contact</a></li>
-            </ul>
-        </div>
-    </nav>
+<nav class="navbar">
+    <h2>Transport Services Portal</h2>
+</nav>
 
-    <h1>Health Department</h1>
-    <p>Use your camera to capture and send a photo for health service records.</p>
+<h1>🚦 File a Transport Complaint</h1>
+<p>Capture a photo related to your transport complaint (traffic issues, road conditions, public transport problems, etc.).</p>
 
-    <video id="video" autoplay playsinline></video>
-    <button id="capture">Capture Photo</button>
-    <button id="retake" style="display:none;">Retake Photo</button>
-    <canvas id="canvas" style="display:none;"></canvas>
-    <button id="send">Send Photo to Backend</button>
+<video id="video" autoplay playsinline></video>
+<button id="capture">Capture Photo</button>
+<button id="retake" style="display:none;">Retake Photo</button>
+<canvas id="canvas" style="display:none;"></canvas>
+<button id="send">Send Complaint</button>
 
-    <div id="message"></div>
+<div id="message"></div>
+<div id="output"></div>
 
-    <script>
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const captureBtn = document.getElementById('capture');
-        const retakeBtn = document.getElementById('retake');
-        const sendBtn = document.getElementById('send');
-        const messageDiv = document.getElementById('message');
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const captureBtn = document.getElementById('capture');
+    const retakeBtn = document.getElementById('retake');
+    const sendBtn = document.getElementById('send');
+    const messageDiv = document.getElementById('message');
+    const outputDiv = document.getElementById('output');
 
-        async function initCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                video.srcObject = stream;
-            } catch (err) {
-                console.error('Camera error:', err);
-                alert('Camera access is not available. Please use HTTPS or localhost.');
-            }
+    async function initCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+        } catch (err) {
+            console.error('Camera error:', err);
+            alert('Camera access is not available. Please use HTTPS or localhost.');
+        }
+    }
+
+    initCamera();
+
+    captureBtn.addEventListener('click', () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        canvas.style.display = 'block';
+        video.style.display = 'none';
+        captureBtn.style.display = 'none';
+        retakeBtn.style.display = 'block';
+        messageDiv.textContent = '📸 Photo captured.';
+    });
+
+    retakeBtn.addEventListener('click', () => {
+        canvas.style.display = 'none';
+        video.style.display = 'block';
+        captureBtn.style.display = 'block';
+        retakeBtn.style.display = 'none';
+        messageDiv.textContent = '♻️ Retake enabled. Capture a new photo.';
+        outputDiv.innerHTML = "";
+    });
+
+    sendBtn.addEventListener('click', () => {
+        if (canvas.width === 0 || canvas.height === 0) {
+            messageDiv.textContent = '⚠️ Please capture a photo before sending.';
+            return;
         }
 
-        initCamera();
+        const sector = "transport"; // sector set to transport
 
-        captureBtn.addEventListener('click', () => {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            canvas.style.display = 'block';
-            video.style.display = 'none';
-            captureBtn.style.display = 'none';
-            retakeBtn.style.display = 'block';
-            messageDiv.textContent = 'Photo captured.';
-        });
-
-        retakeBtn.addEventListener('click', () => {
-            canvas.style.display = 'none';
-            video.style.display = 'block';
-            captureBtn.style.display = 'block';
-            retakeBtn.style.display = 'none';
-            messageDiv.textContent = 'Retake enabled. Capture a new photo.';
-        });
-
-        sendBtn.addEventListener('click', () => {
-            if (canvas.width === 0 || canvas.height === 0) {
-                messageDiv.textContent = 'Please capture a photo before sending.';
+        canvas.toBlob(blob => {
+            if (!blob) {
+                messageDiv.textContent = '❌ Failed to capture photo.';
                 return;
             }
 
-            canvas.toBlob(blob => {
-                if (!blob) {
-                    messageDiv.textContent = 'Failed to capture photo.';
-                    return;
+            const formData = new FormData();
+            formData.append('image', blob, 'transport-complaint.png');
+            formData.append('sector', sector);
+
+            fetch('http://localhost:8080/api/ask', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    messageDiv.textContent = '✅ Complaint letter generated!';
+                    outputDiv.innerHTML = `
+                        <h3>📄 Complaint Letter</h3>
+                        <pre>${data.complaint_letter}</pre>
+                        <p><strong>Recipient Email:</strong> ${data.recipient_email}</p>
+                        <p><strong>Subject:</strong> ${data.subject}</p>
+                    `;
+                } else {
+                    messageDiv.textContent = '⚠️ Error: ' + data.error_message;
+                    outputDiv.innerHTML = "";
                 }
-
-                const formData = new FormData();
-                formData.append('photo', blob, 'health-photo.png');
-                formData.append('department', 'health');
-
-                fetch('http://10.140.69.246/api/ask', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Upload failed');
-                    return response.json();
-                })
-                .then(data => {
-                    messageDiv.textContent = 'Photo uploaded successfully!';
-                })
-                .catch(err => {
-                    console.error('Upload error:', err);
-                    messageDiv.textContent = 'Upload failed.';
-                });
-            }, 'image/png');
-        });
-    </script>
+            })
+            .catch(err => {
+                console.error('Upload error:', err);
+                messageDiv.textContent = '❌ Upload failed.';
+                outputDiv.innerHTML = "";
+            });
+        }, 'image/png');
+    });
+</script>
 </body>
 
 </html>
