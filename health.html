@@ -154,7 +154,7 @@
                 formData.append('image', blob, 'transport-complaint.png');
                 formData.append('sector', sector);
 
-                fetch('http://192.168.29.79:8443/api/ask', {
+                fetch('https://192.168.29.79:8443/api/ask', {
                     method: 'POST',
                     body: formData
                 })
